@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Racemap Hybrid Tracker</title>
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 20px; background: #f4f4f9; }
+        .container { max-width: 600px; margin: auto; }
+        #map { height: 400px; border-radius: 12px; margin-bottom: 20px; border: 2px solid #ddd; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .btn-strava { background: #FC6100; color: white; } /* Strava Orange */
+        .btn-direct { background: #2ecc71; color: white; } /* Success Green */
+        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; }
+        .status { font-size: 0.9em; color: #666; margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🏁 Racemap Project</h2>
+    
+    <div id="map"></div>
+
+    <!-- Option A: Strava -->
+    <div class="card">
+        <h3>Option A: Strava Beacon</h3>
+        <input type="text" id="stravaUrl" placeholder="Paste Strava Beacon Link here...">
+        <button class="btn-strava" onclick="initStravaProxy()">Connect via Strava</button>
+        <p class="status" id="stravaStatus">Note: Scraper requires a backend server to bypass CORS.</p>
+    </div>
+
+    <!-- Option B: Direct -->
+    <div class="card">
+        <h3>Option B: Direct Tracker</h3>
+        <button id="trackBtn" class="btn-direct" onclick="toggleDirectTracking()">Start Live Tracking</button>
+        <p class="status" id="directStatus">Uses your phone's GPS directly.</p>
+    </div>
+</div>
+
+<!-- Leaflet Map JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // 1. Initialize Map
+    const map = L.map('map').setView([0, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    let userMarker = L.marker([0, 0]).addTo(map);
+    let watchId = null;
+
+    // --- BUTTON B LOGIC (Direct Tracking) ---
+    function toggleDirectTracking() {
+        const btn = document.getElementById('trackBtn');
+        const status = document.getElementById('directStatus');
+
+        if (!watchId) {
+            if ("geolocation" in navigator) {
+                watchId = navigator.geolocation.watchPosition((pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    
+                    userMarker.setLatLng([lat, lng]);
+                    map.setView([lat, lng], 15);
+                    status.innerText = `Updating: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                }, (err) => {
+                    alert("GPS Error: " + err.message);
+                }, { enableHighAccuracy: true });
+
+                btn.innerText = "Stop Tracking";
+                btn.style.background = "#e74c3c";
+            }
+        } else {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+            btn.innerText = "Start Live Tracking";
+            btn.style.background = "#2ecc71";
+            status.innerText = "Tracking Stopped.";
+        }
+    }
+
+    // --- BUTTON A LOGIC (Strava Placeholder) ---
+    function initStravaProxy() {
+        const url = document.getElementById('stravaUrl').value;
+        const status = document.getElementById('stravaStatus');
+        
+        if (!url.includes("strava.com/beacon/")) {
+            alert("Please paste a valid Strava Beacon link.");
+            return;
+        }
+
+        status.innerText = "Checking link... (Requires Backend)";
+        console.log("URL to be sent to backend scraper:", url);
+        
+        // In a real app, you'd do:
+        // fetch('https://your-api.com/scrape?url=' + url)...
+    }
+</script>
+
+</body>
+</html>
