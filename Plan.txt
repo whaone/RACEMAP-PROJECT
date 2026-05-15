@@ -1,0 +1,886 @@
+# Frontend PRD — Racemap Live Tracking Platform
+
+## 1. Product Overview
+
+Racemap is a real-time live tracking platform for cycling race events.
+
+The platform uses:
+
+* Strava Beacon links as participant live tracking sources.
+* OpenStreetMap as the primary map provider.
+* Checkpoint-based progression tracking.
+* Real-time leaderboard and participant monitoring.
+
+The frontend acts as:
+
+* Public live race viewer.
+* Race control dashboard.
+* Real-time monitoring interface.
+* Spectator engagement platform.
+
+This document is specifically designed for AI developer agents to understand and implement the frontend architecture, UI system, responsive behavior, and real-time interactions.
+
+---
+
+# 2. Product Goals
+
+## 2.1 Primary Goals
+
+The frontend must:
+
+1. Display participant positions in real-time.
+2. Display race rankings.
+3. Display checkpoint progression.
+4. Display the full event route.
+5. Support multi-participant comparison.
+6. Work smoothly on desktop and mobile devices.
+7. Be easy to understand for spectators.
+8. Remain performant even with many participants.
+
+---
+
+# 3. Core Business Rules
+
+## 3.1 Ranking Logic
+
+Primary ranking rules:
+
+1. Participants who finish first rank higher.
+2. If participants have not finished yet:
+
+   * Latest completed checkpoint.
+   * Distance toward next checkpoint.
+   * Checkpoint timestamp.
+
+Important:
+
+* The frontend only consumes ranking data from the backend.
+* The frontend must not calculate heavy race logic.
+
+---
+
+## 3.2 Multi Category Support
+
+The frontend must support:
+
+* All participants in one unified page.
+* Category-based filtering.
+* Multi-category leaderboard views.
+
+Example categories:
+
+* Men Open
+* Women Open
+* MTB
+* Gravel
+* Team
+
+---
+
+## 3.3 Participant Comparison
+
+The frontend must support:
+
+* Comparing 2 participants.
+* Comparing multiple participants.
+* Multi-marker map focus.
+* Checkpoint comparison.
+* Gap comparison.
+* Speed comparison.
+* Distance comparison.
+
+---
+
+## 3.4 Route Availability
+
+The race route is available before the race starts.
+
+The frontend must render:
+
+* Route polyline.
+* Start point.
+* Finish point.
+* Checkpoint markers.
+* Optional elevation markers.
+
+---
+
+# 4. Target Users
+
+## 4.1 Spectators
+
+Needs:
+
+* See who is leading.
+* Track favorite riders.
+* Understand race progression quickly.
+
+## 4.2 Race Organizers
+
+Needs:
+
+* Monitor all participants.
+* Detect problematic trackers.
+* Monitor stale tracking data.
+
+## 4.3 Support Teams
+
+Needs:
+
+* Track specific riders.
+* Compare riders.
+* Monitor checkpoint progression.
+
+---
+
+# 5. Suggested Frontend Technology Stack
+
+## 5.1 Core Stack
+
+Frontend:
+
+* React
+* Next.js
+* TypeScript
+* TailwindCSS
+* Zustand or Redux
+
+Map Engine:
+
+* Leaflet or MapLibre GL
+* OpenStreetMap tiles
+
+Realtime:
+
+* WebSocket
+* SSE fallback optional
+* Polling fallback optional
+
+Animation:
+
+* Framer Motion
+
+Charts:
+
+* Recharts
+
+---
+
+# 6. Frontend Architecture
+
+## 6.1 Main Layout Structure
+
+Desktop layout:
+
+* Left sidebar.
+* Central map area.
+* Right detail panel.
+
+Mobile layout:
+
+* Fullscreen map.
+* Floating controls.
+* Bottom sheet system.
+
+---
+
+# 7. Main Pages
+
+# 7.1 Live Tracking Page
+
+This is the primary application page.
+
+## Purpose
+
+Display:
+
+* Real-time map.
+* Leaderboard.
+* Participant details.
+* Checkpoint progression.
+* Race status.
+* Comparison tools.
+
+---
+
+## Desktop Layout
+
+### Left Sidebar
+
+Suggested width:
+
+* 320px to 380px.
+
+Content:
+
+* Event information.
+* Search participant.
+* Category filter.
+* Leaderboard.
+* Compare selector.
+
+---
+
+### Center Map Area
+
+Flexible width.
+
+Content:
+
+* Main map.
+* Participant markers.
+* Route polyline.
+* Checkpoint markers.
+* Focus controls.
+
+---
+
+### Right Detail Panel
+
+Suggested width:
+
+* 340px to 420px.
+
+Content:
+
+* Participant details.
+* Checkpoint timeline.
+* Gap analysis.
+* Comparison details.
+
+---
+
+## Mobile Layout
+
+### Top Header
+
+Height:
+
+* 56px.
+
+Content:
+
+* Event title.
+* LIVE badge.
+* Search button.
+* Filter button.
+
+---
+
+### Fullscreen Map
+
+The map becomes the primary focus.
+
+---
+
+### Bottom Sheet
+
+Modes:
+
+* collapsed.
+* half.
+* fullscreen.
+
+Content:
+
+* Leaderboard.
+* Participant details.
+* Compare view.
+
+---
+
+# 8. Detailed UI Components
+
+# 8.1 Header Component
+
+## Purpose
+
+Global navigation and race status.
+
+## Required Elements
+
+* Event logo.
+* Event name.
+* LIVE indicator.
+* Last updated timer.
+* Network status.
+* Category dropdown.
+* Search button.
+* Fullscreen toggle.
+
+## Behavior
+
+* Sticky top.
+* Semi-transparent.
+* Blur background effect.
+
+---
+
+# 8.2 Map Component
+
+## Purpose
+
+Core live tracking visualization.
+
+## Required Features
+
+### Route Rendering
+
+* Draw route polyline.
+* Draw start point.
+* Draw finish point.
+* Draw checkpoint markers.
+
+---
+
+### Participant Rendering
+
+Markers must support:
+
+* Smooth animation.
+* Rotation based on heading.
+* Color coding.
+* Marker clustering.
+
+---
+
+### Marker States
+
+Normal:
+
+* Active rider.
+
+Warning:
+
+* Stale position.
+
+Offline:
+
+* No update.
+
+Finished:
+
+* Completed race.
+
+DNF:
+
+* Did not finish.
+
+---
+
+## Marker Popup
+
+Popup information:
+
+* Rider name.
+* Rank.
+* Speed.
+* Last update.
+* Distance covered.
+* Category.
+
+Actions:
+
+* Focus rider.
+* Compare rider.
+* Open detail panel.
+
+---
+
+## Map Controls
+
+Required controls:
+
+* Zoom in/out.
+* Fit all riders.
+* Locate selected rider.
+* Toggle route.
+* Toggle checkpoints.
+* Optional heatmap toggle.
+
+---
+
+# 8.3 Leaderboard Component
+
+## Purpose
+
+Display race rankings.
+
+## Required Columns
+
+* Rank.
+* Bib number.
+* Rider name.
+* Category.
+* Last checkpoint.
+* Gap.
+* Status.
+
+---
+
+## Sorting
+
+Support sorting by:
+
+* Rank.
+* Category.
+* Checkpoint.
+* Speed.
+* Update time.
+
+---
+
+## Filtering
+
+Support filtering by:
+
+* All participants.
+* Active participants.
+* Finished participants.
+* Offline participants.
+* Categories.
+
+---
+
+## Interactions
+
+Desktop:
+
+* Click row → focus marker.
+* Hover row → highlight marker.
+
+Mobile:
+
+* Long press → quick actions.
+
+---
+
+# 8.4 Participant Detail Panel
+
+## Purpose
+
+Display detailed participant information.
+
+## Required Sections
+
+### Basic Information
+
+* Rider name.
+* Team.
+* Category.
+* Bib number.
+* Rank.
+* Status.
+
+---
+
+### Live Statistics
+
+* Speed.
+* Distance.
+* Estimated finish time (optional).
+* Last update.
+* Gap to leader.
+
+---
+
+### Checkpoint Progress
+
+* Current checkpoint.
+* Next checkpoint.
+* Completed checkpoint count.
+
+---
+
+### Timeline
+
+* CP1 time.
+* CP2 time.
+* CP3 time.
+* Finish time.
+
+---
+
+# 8.5 Compare Panel
+
+## Purpose
+
+Compare multiple participants.
+
+## Supported Modes
+
+* Two-rider comparison.
+* Multi-rider comparison.
+
+## Required Comparison Data
+
+* Rank.
+* Checkpoint.
+* Speed.
+* Distance.
+* Gap.
+* Estimated finish.
+
+## UI Layout
+
+Desktop:
+
+* Side-by-side comparison cards.
+
+Mobile:
+
+* Swipeable comparison cards.
+
+---
+
+# 8.6 Checkpoint Timeline Component
+
+## Purpose
+
+Visualize race progression.
+
+## States
+
+Not reached:
+
+* Gray.
+
+In progress:
+
+* Blue.
+
+Completed:
+
+* Green.
+
+Problem:
+
+* Red.
+
+---
+
+## Timeline Information
+
+Each checkpoint displays:
+
+* Checkpoint name.
+* Timestamp.
+* Split time.
+* Gap.
+
+---
+
+# 9. Responsive Design Rules
+
+# 9.1 Desktop
+
+Target resolution:
+
+* 1440px and above.
+
+Behavior:
+
+* All panels visible.
+* Map remains dominant.
+
+---
+
+# 9.2 Tablet
+
+Target resolution:
+
+* 768px to 1439px.
+
+Behavior:
+
+* Collapsible sidebar.
+* Floating detail panel.
+
+---
+
+# 9.3 Mobile
+
+Target resolution:
+
+* Below 768px.
+
+Behavior:
+
+* Fullscreen map.
+* Bottom sheet system.
+* Minimal UI.
+* Gesture support.
+
+---
+
+# 10. Visual Design Direction
+
+## Design Keywords
+
+* Sporty.
+* Realtime.
+* Futuristic.
+* Clean.
+* Minimal.
+* Cinematic map UI.
+
+---
+
+## Design Inspiration
+
+Combination of:
+
+* Formula 1 timing boards.
+* Strava activity maps.
+* Uber live tracking.
+* Tactical monitoring dashboards.
+
+---
+
+## Color Direction
+
+Background:
+
+* Dark neutral tones.
+
+Accent colors:
+
+* Blue.
+* Lime.
+* Orange.
+
+Status colors:
+
+* Green = active/finished.
+* Yellow = warning.
+* Red = offline/problem.
+* Blue = selected participant.
+
+---
+
+## Typography
+
+Suggested fonts:
+
+* Inter.
+* Geist.
+* SF Pro equivalent.
+
+Requirements:
+
+* Readable at small sizes.
+* Bold ranking numbers.
+
+---
+
+## Card Style
+
+* Large rounded corners.
+* Semi-transparent surfaces.
+* Optional glassmorphism blur.
+* Subtle shadows.
+* Compact spacing.
+
+---
+
+# 11. Real-Time Behavior
+
+## Live Updates
+
+Frontend must:
+
+* Update markers smoothly.
+* Animate movement.
+* Avoid hard rerenders.
+* Preserve map zoom state.
+
+---
+
+## Suggested Update Interval
+
+* Every 2 to 5 seconds.
+
+---
+
+## Stale Data Handling
+
+If a participant stops updating:
+
+* Show warning badge.
+* Reduce marker opacity.
+* Update leaderboard status.
+
+---
+
+# 12. State Management
+
+## Global States
+
+* participants.
+* selectedParticipant.
+* compareParticipants.
+* checkpoints.
+* leaderboard.
+* filters.
+* mapState.
+* websocketState.
+* raceStatus.
+
+---
+
+# 13. Loading States
+
+## Required Loading UI
+
+* Leaderboard skeleton.
+* Detail panel skeleton.
+* Map loading overlay.
+* Shimmer cards.
+
+---
+
+# 14. Empty States
+
+## Cases
+
+* No participants.
+* No live data.
+* No category.
+
+Frontend must display:
+
+* Icon.
+* Message.
+* Retry button.
+
+---
+
+# 15. Error States
+
+## Required Error Handling
+
+* WebSocket disconnected.
+* Map failed to load.
+* Invalid beacon data.
+* Checkpoint unavailable.
+
+Frontend must:
+
+* Display non-blocking alerts.
+* Continue showing last known data.
+
+---
+
+# 16. Accessibility
+
+Requirements:
+
+* Keyboard navigation.
+* High contrast.
+* Color-independent indicators.
+* Readable touch targets.
+
+---
+
+# 17. Performance Requirements
+
+Frontend must:
+
+* Remain smooth on mobile.
+* Support dozens to hundreds of markers.
+* Avoid full rerenders.
+* Lazy render heavy panels.
+* Use virtualized leaderboards when large.
+
+---
+
+# 18. Suggested Folder Structure
+
+```txt
+src/
+ ├── app/
+ ├── components/
+ │    ├── map/
+ │    ├── leaderboard/
+ │    ├── participant/
+ │    ├── checkpoint/
+ │    ├── compare/
+ │    └── ui/
+ ├── features/
+ │    ├── tracking/
+ │    ├── ranking/
+ │    ├── websocket/
+ │    └── filters/
+ ├── hooks/
+ ├── store/
+ ├── services/
+ ├── types/
+ ├── utils/
+ └── styles/
+```
+
+---
+
+# 19. Suggested AI Implementation Order
+
+## Phase 1
+
+* Layout system.
+* Map integration.
+* Static UI components.
+
+---
+
+## Phase 2
+
+* Realtime WebSocket integration.
+* Marker rendering.
+* Leaderboard logic.
+
+---
+
+## Phase 3
+
+* Comparison mode.
+* UI animations.
+* Performance optimization.
+
+---
+
+## Phase 4
+
+* Replay mode.
+* Analytics.
+* UI polish.
+
+---
+
+# 20. AI Development Notes
+
+AI developers must:
+
+* Use reusable components.
+* Use typed models.
+* Avoid prop drilling.
+* Use modular architecture.
+* Avoid hardcoded values.
+* Use responsive-first design.
+* Keep animations lightweight.
+* Preserve map performance.
+
+---
+
+# 21. Final UX Principles
+
+Racemap should feel like:
+
+* A race control dashboard.
+* A live sports broadcast system.
+* A tactical real-time tracking map.
+
+Users should be able to:
+
+* Understand rankings within seconds.
+* Find riders quickly.
+* Understand race progression without reading excessive text.
+* Comfortably use the application on mobile devices during live events.
